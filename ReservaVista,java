@@ -1,0 +1,141 @@
+import java.util.Scanner;
+
+public class ReservaVista {
+    private final SistemaDeReserva modelo;
+    private final Scanner sc;
+
+    public ReservaVista(SistemaDeReserva modelo) {
+        this.modelo = modelo;
+        this.sc = new Scanner(System.in);
+    }
+
+    private void ingresarCanchas() {
+        System.out.println("=== INGRESO DE CANCHAS (mínimo 4) ===");
+        int contador = 0;
+        while (contador < 4) {
+            System.out.println("Ingrese datos de la cancha #" + (contador + 1));
+            System.out.print("Número: ");
+            int numero = readInt();
+            System.out.print("Tipo (Fútbol/Baloncesto/Tenis): ");
+            String tipo = sc.nextLine();
+            System.out.print("Capacidad máxima: ");
+            int capacidad = readInt();
+            System.out.print("Costo por hora: ");
+            double costo = readDouble();
+            modelo.agregarCancha(new Cancha(numero, tipo, capacidad, costo));
+            contador++;
+        }
+        System.out.println("✅ Se han ingresado " + contador + " canchas.");
+    }
+
+    public void iniciar() {
+      
+        ingresarCanchas();
+
+        int opcion;
+        do {
+            System.out.println("\n=== MENÚ RESERVAS (Consola) ===");
+            System.out.println("1. Solicitar Reserva");
+            System.out.println("2. Cancelar Reserva");
+            System.out.println("3. Ver Reservas por Cancha");
+            System.out.println("0. Salir");
+            System.out.print("Opción: ");
+            opcion = readInt();
+
+            switch (opcion) {
+                case 1:
+                    solicitarReserva();
+                    break;
+                case 2:
+                    cancelarReserva();
+                    break;
+                case 3:
+                    verReservasPorCancha();
+                    break;
+                case 0:
+                    System.out.println("Saliendo...");
+                    break;
+                default:
+                    System.out.println("Opción inválida.");
+            }
+        } while (opcion != 0);
+    }
+
+    private void solicitarReserva() {
+        System.out.print("Responsable: ");
+        String responsable = sc.nextLine();
+        System.out.print("Nombre del evento: ");
+        String nombre = sc.nextLine();
+        System.out.print("Tipo de evento: ");
+        String tipo = sc.nextLine();
+        System.out.print("Fecha (dd/mm/aaaa): ");
+        String fecha = sc.nextLine();
+        System.out.print("Hora inicio (8-22): ");
+        int inicio = readInt();
+        System.out.print("Hora fin (8-22): ");
+        int fin = readInt();
+        System.out.print("Número de jugadores: ");
+        int jugadores = readInt();
+        System.out.print("¿Pagó depósito? (1=Sí, 0=No): ");
+        boolean deposito = readInt() == 1;
+
+        Evento ev = new Evento(responsable, nombre, tipo, fecha, inicio, fin, jugadores, deposito);
+        modelo.pedirReserva(ev);
+        System.out.println(modelo.getMensajeUltimaOperacion());
+    }
+
+    private void cancelarReserva() {
+        System.out.print("Nombre del evento a cancelar: ");
+        String nombre = sc.nextLine();
+        modelo.cancelarReserva(nombre);
+        System.out.println(modelo.getMensajeUltimaOperacion());
+    }
+
+    private void verReservasPorCancha() {
+        for (Cancha c : modelo.getCanchas()) {
+            System.out.println("=== " + c.toString() + " ===");
+            boolean any = false;
+            for (Reserva r : modelo.getReservasConfirmadas()) {
+                if (r.getCancha() == c) {
+                    System.out.println(r.toString());
+                    any = true;
+                }
+            }
+            if (!any) System.out.println("No hay reservas en esta cancha.");
+            System.out.println();
+        }
+        System.out.println("=== Lista de espera ===");
+        for (Evento e : modelo.getEventosEnEspera()) {
+            System.out.println("- " + e.getNombreEvento() + " | " + e.getFecha()
+                    + " | " + e.getHoraInicio() + ":00-" + e.getHoraFin() + ":00");
+        }
+    }
+
+    private int readInt() {
+        while (true) {
+            try {
+                String line = sc.nextLine().trim();
+                return Integer.parseInt(line);
+            } catch (NumberFormatException ex) {
+                System.out.print("Entrada inválida. Intente nuevamente: ");
+            }
+        }
+    }
+
+    private double readDouble() {
+        while (true) {
+            try {
+                String line = sc.nextLine().trim();
+                return Double.parseDouble(line);
+            } catch (NumberFormatException ex) {
+                System.out.print("Entrada inválida. Intente nuevamente: ");
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        SistemaDeReserva modelo = new SistemaDeReserva();
+        ReservaVista vista = new ReservaVista(modelo);
+        vista.iniciar();
+    }
+}
